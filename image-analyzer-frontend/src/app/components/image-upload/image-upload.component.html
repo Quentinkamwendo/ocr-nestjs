@@ -1,0 +1,95 @@
+<div class="upload-container">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>Image Analysis</mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      <!-- Keywords Input -->
+      <form [formGroup]="uploadForm" (ngSubmit)="onSubmit()">
+        <mat-form-field class="keywords-input">
+          <mat-label>Keywords (comma-separated)</mat-label>
+          <input matInput formControlName="keywords" placeholder="Enter keywords...">
+          <mat-hint>Example: invoice, receipt, document</mat-hint>
+          <button matSuffix mat-icon-button color="primary" type="submit"><mat-icon>add</mat-icon></button>
+        </mat-form-field>
+      </form>
+
+      <mat-chip-listbox>
+        <mat-chip *ngFor="let keyword of keywordsArray"
+                  (removed)="removeKeyword(keyword)">
+          {{keyword}}
+          <button matChipRemove>
+            <mat-icon>cancel</mat-icon>
+          </button>
+        </mat-chip>
+      </mat-chip-listbox>
+
+      <p>Keywords: {{ keywordsArray.join(', ') }}</p>
+
+      <!-- File Upload -->
+      <div class="file-upload">
+        <input type="file" #fileInput hidden ng2FileSelect [uploader]="uploader" accept="image/*">
+        <button mat-raised-button color="primary" (click)="fileInput.click()">
+          <mat-icon>cloud_upload</mat-icon>
+          Select Image
+        </button>
+      </div>
+
+      <!-- Upload Queue -->
+       <mat-list>
+        <mat-list-item *ngFor="let item of uploader.queue;">
+          <div class="upload-item">
+            <span matListItemTitle>{{ item.file.name }}</span>
+            <span matListItemLine>Size: {{item?.file?.size/1024/1024 | number:'.2'}} MB</span>
+            <button mat-raised-button color="accent" 
+                    (click)="item.remove()"
+                    [disabled]="isLoading">
+              <mat-icon>{{ isLoading ? 'hourglass_empty' : 'delete' }}</mat-icon>
+              {{ isLoading ? 'Processing...' : 'Remove' }}
+            </button>
+          </div>
+        </mat-list-item>
+       </mat-list>
+
+      <!-- Results Display -->
+      <ng-container *ngIf="uploadedImage">
+        <div class="results-section">
+          <mat-card>
+            <mat-card-header>
+              <mat-card-title>Analysis Results</mat-card-title>
+              <mat-card-subtitle>Status: {{ uploadedImage.status }}</mat-card-subtitle>
+            </mat-card-header>
+            
+            <mat-card-content>
+              <h4>Extracted Text:</h4>
+              <pre class="extracted-text">{{ uploadedImage.extractedText }}</pre>
+              
+              <div class="status-indicator">
+                <mat-icon [class]="uploadedImage.status">
+                  {{ uploadedImage.status === 'accepted' ? 'check_circle' : 'cancel' }}
+                </mat-icon>
+                {{ uploadedImage.status === 'accepted' ? 'Accepted' : 'Rejected' }}
+              </div>
+            </mat-card-content>
+
+            <mat-card-actions>
+              <button mat-button (click)="exportToPdf()">
+                <mat-icon>picture_as_pdf</mat-icon>
+                Export to PDF
+              </button>
+              <button mat-button (click)="exportToWord()">
+                <mat-icon>description</mat-icon>
+                Export to Word
+              </button>
+              <button mat-button color="warn" (click)="deleteImage(uploadedImage.id)">
+                <mat-icon>delete</mat-icon>
+                Delete Image
+              </button>
+            </mat-card-actions>
+          </mat-card>
+        </div>
+      </ng-container>
+    </mat-card-content>
+  </mat-card>
+</div>
